@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complete Payment — MapYou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14213D; --paper:#FAF6ED; --marigold:#E8A33D; --route:#D64933;
+    --verified:#2F7A5C; --slate:#5B6B7A; --line:rgba(20,33,61,0.12); --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.55; }
+  h1,h2,h3{ font-family:'Roboto Slab', serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:560px; margin:0 auto; padding:0 24px; }
+
+  header{ background:var(--ink); color:#fff; padding:20px 0; }
+  header .wrap{ display:flex; align-items:center; justify-content:space-between; max-width:1040px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; }
+  .brand .pin{ width:18px; height:18px; }
+  .back{ font-size:0.85rem; color:#C9D2E3; }
+  .back:hover{ color:#fff; }
+
+  .hero-strip{ background:var(--ink); color:#fff; padding:28px 0 44px; }
+  .hero-strip .wrap{ max-width:1040px; }
+  .hero-strip h1{ font-size:clamp(1.5rem,4vw,2rem); }
+  .hero-strip p{ color:#C9D2E3; margin-top:8px; }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px; margin:-30px auto 20px; box-shadow:0 20px 50px rgba(20,33,61,0.1);
+  }
+
+  .summary-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.92rem; }
+  .summary-row:last-child{ border-bottom:none; }
+  .summary-row .k{ color:var(--slate); }
+  .summary-row .v{ font-weight:600; text-align:right; max-width:60%; }
+
+  .amount-box{
+    background:var(--ink); color:#fff; border-radius:12px; padding:22px; text-align:center; margin:22px 0;
+  }
+  .amount-box .l{ font-size:0.78rem; color:#AEB9CC; text-transform:uppercase; letter-spacing:0.06em; }
+  .amount-box .a{ font-family:'IBM Plex Mono',monospace; font-size:2.1rem; font-weight:600; color:var(--marigold); margin-top:4px; }
+
+  .qr-wrap{ text-align:center; margin:20px 0; }
+  .qr-wrap img{ width:190px; height:190px; border-radius:10px; border:1px solid var(--line); }
+  .qr-wrap p{ font-size:0.8rem; color:var(--slate); margin-top:10px; }
+
+  .pay-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    background:var(--verified); color:#fff; padding:15px; border-radius:999px;
+    font-weight:700; font-size:1rem; border:none; cursor:pointer; margin-top:6px;
+  }
+  .pay-btn:hover{ opacity:0.92; }
+
+  .divider{ display:flex; align-items:center; gap:10px; margin:22px 0; color:var(--slate); font-size:0.78rem; }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  .confirm-btn{
+    width:100%; background:transparent; border:1.5px solid var(--route); color:var(--route);
+    padding:14px; border-radius:999px; font-weight:700; font-size:0.95rem; cursor:pointer;
+  }
+  .confirm-btn:hover{ background:#FDF1EE; }
+  .note{ font-size:0.78rem; color:var(--slate); text-align:center; margin-top:14px; }
+
+  .state{ display:none; text-align:center; }
+  .state.show{ display:block; }
+  .state .pin{
+    width:56px; height:56px; border-radius:50% 50% 50% 0; background:var(--verified);
+    transform:rotate(-45deg); margin:0 auto 18px; display:flex; align-items:center; justify-content:center;
+  }
+  .state .pin span{ transform:rotate(45deg); color:#fff; font-size:1.5rem; }
+  .state h2{ font-size:1.35rem; }
+  .state p{ color:var(--slate); margin-top:10px; font-size:0.94rem; max-width:38ch; margin-left:auto; margin-right:auto; }
+  .state .next-list{ text-align:left; background:#F3F7F4; border-radius:10px; padding:16px 18px; margin:20px 0; font-size:0.88rem; }
+  .state .next-list li{ margin-left:18px; margin-top:6px; color:var(--ink); }
+  .state .btn{
+    display:inline-flex; margin-top:8px; background:var(--ink); color:#fff;
+    padding:12px 24px; border-radius:999px; font-weight:600; font-size:0.9rem;
+  }
+  .body-content.hide{ display:none; }
+
+  .upload-box{
+    border:1.5px dashed var(--line); border-radius:10px; padding:20px; margin:20px 0;
+    text-align:center; background:#FDFCF8;
+  }
+  .upload-box input[type=file]{ font-size:0.85rem; max-width:100%; }
+  .file-name{ font-size:0.82rem; color:var(--verified); margin-top:8px; font-weight:600; }
+  .error{ color:var(--route); font-size:0.8rem; margin-top:8px; display:none; }
+  .error.show{ display:block; }
+  .wa-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    background:#25D366; color:#fff; padding:15px; border-radius:999px;
+    font-weight:700; font-size:1rem; border:none; cursor:pointer; margin-top:8px;
+  }
+  .wa-btn:hover{ opacity:0.92; }
+
+  footer{ padding:30px 0; text-align:center; color:var(--slate); font-size:0.78rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="pin" viewBox="0 0 24 24" fill="none"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8Z" fill="#E8A33D"/><circle cx="12" cy="10" r="3" fill="#14213D"/></svg>
+      MapYou
+    </div>
+    <a class="back" href="index.html">← Cancel</a>
+  </div>
+</header>
+
+<div class="hero-strip">
+  <div class="wrap">
+    <h1>Secure your appointment</h1>
+    <p>One quick payment and your slot is locked in.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+
+    <div class="body-content" id="bodyContent">
+      <div class="summary-row"><span class="k">Package</span><span class="v" id="sPlan">—</span></div>
+      <div class="summary-row"><span class="k">Business</span><span class="v" id="sBusiness">—</span></div>
+      <div class="summary-row"><span class="k">Visit date</span><span class="v" id="sDate">—</span></div>
+      <div class="summary-row"><span class="k">Time slot</span><span class="v" id="sSlot">—</span></div>
+
+      <div class="amount-box">
+        <div class="l">Amount to pay</div>
+        <div class="a" id="sAmount">₹0</div>
+      </div>
+
+      <div class="qr-wrap">
+        <img id="qrImg" src="" alt="UPI QR code">
+        <p>Scan with any UPI app — GPay, PhonePe, Paytm, or your bank app</p>
+      </div>
+
+      <a class="pay-btn" id="upiPayBtn" href="#">📲 Pay with UPI app</a>
+
+      <div class="divider">then</div>
+
+      <button class="confirm-btn" id="confirmPaidBtn">I've completed the payment</button>
+      <p class="note">This lets Rahul know to check for your payment and confirm your visit.</p>
+    </div>
+
+    <div class="state" id="uploadState">
+      <div class="pin"><span>✓</span></div>
+      <h2>Payment noted!</h2>
+      <p>Now upload a screenshot or photo of your payment slip so Rahul can verify it.</p>
+
+      <div class="upload-box">
+        <input type="file" id="slipInput" accept="image/*,.pdf">
+        <div class="file-name" id="slipFileName">No file chosen</div>
+      </div>
+      <div class="error" id="err-slip">Please choose a payment slip to upload.</div>
+
+      <button class="pay-btn" id="uploadSlipBtn">📎 Upload payment slip</button>
+      <p class="note">Accepted formats: JPG, PNG, or PDF.</p>
+    </div>
+
+    <div class="state" id="successState">
+      <div class="pin"><span>✓</span></div>
+      <h2>Slip uploaded!</h2>
+      <p>Your payment slip for <span id="doneP"></span> has been received.</p>
+      <ul class="next-list">
+        <li>Tap below to send Rahul your booking details on WhatsApp</li>
+        <li>He'll verify the payment and confirm your visit date</li>
+        <li>Further updates (photos done, profile live, monthly report) will also come by WhatsApp</li>
+      </ul>
+      <a class="wa-btn" id="waBtn" href="#" target="_blank">💬 Send WhatsApp message</a>
+      <a class="btn" href="index.html">← Back to homepage</a>
+    </div>
+
+  </div>
+</div>
+
+<footer>Payments are received directly by Rahul Kumar via UPI. Your payment slip is stored only so Rahul can verify your payment.</footer>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const plan = params.get('plan') || 'Basic';
+  const business = params.get('business') || '';
+  const name = params.get('name') || '';
+  const btype = params.get('btype') || '';
+  const phone = params.get('phone') || '';
+  const address = params.get('address') || '';
+  const date = params.get('date') || '';
+  const slot = params.get('slot') || '';
+  const notes = params.get('notes') || '';
+
+  const PRICES = { Basic: 499, Standard: 1499, Premium: 2999 };
+  const amount = PRICES[plan] || 499;
+
+  const UPI_ID = 'Q097044638@ybl';
+  const PAYEE_NAME = 'Rahul Kumar';
+
+  document.getElementById('sPlan').textContent = `${plan} — ₹${amount.toLocaleString('en-IN')}`;
+  document.getElementById('sBusiness').textContent = business || '—';
+  document.getElementById('sDate').textContent = date || '—';
+  document.getElementById('sSlot').textContent = slot || '—';
+  document.getElementById('sAmount').textContent = `₹${amount.toLocaleString('en-IN')}`;
+
+  const upiNote = encodeURIComponent(`${plan} plan - ${business}`);
+  const upiUri = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR&tn=${upiNote}`;
+
+  document.getElementById('upiPayBtn').setAttribute('href', upiUri);
+  document.getElementById('qrImg').setAttribute('src',
+    `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`
+  );
+
+  document.getElementById('confirmPaidBtn').addEventListener('click', function(){
+    document.getElementById('bodyContent').classList.add('hide');
+    document.getElementById('uploadState').classList.add('show');
+  });
+
+  const slipInput = document.getElementById('slipInput');
+  const slipFileName = document.getElementById('slipFileName');
+  const errSlip = document.getElementById('err-slip');
+
+  slipInput.addEventListener('change', function(){
+    slipFileName.textContent = slipInput.files[0] ? slipInput.files[0].name : 'No file chosen';
+    errSlip.classList.remove('show');
+  });
+
+  document.getElementById('uploadSlipBtn').addEventListener('click', async function(){
+    const file = slipInput.files[0];
+    if(!file){
+      errSlip.textContent = 'Please choose a payment slip to upload.';
+      errSlip.classList.add('show');
+      return;
+    }
+
+    const btn = this;
+    const originalLabel = btn.textContent;
+    btn.textContent = 'Uploading…';
+    btn.disabled = true;
+    errSlip.classList.remove('show');
+
+    try{
+      const base64 = await new Promise((resolve, reject)=>{
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch('/api/upload-payment-slip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          data: base64,
+        }),
+      });
+
+      if(!res.ok) throw new Error('Upload failed');
+      const result = await res.json();
+
+      document.getElementById('uploadState').classList.remove('show');
+      document.getElementById('successState').classList.add('show');
+      document.getElementById('doneP').textContent = `${plan} (₹${amount.toLocaleString('en-IN')})`;
+
+      const lines = [
+        '💰 New payment claimed — please verify.',
+        '',
+        `Package: ${plan} (₹${amount})`,
+        `Name: ${name}`,
+        `Business: ${business} (${btype})`,
+        `Phone: ${phone}`,
+        `Address: ${address}`,
+        `Visit date: ${date}`,
+        `Time slot: ${slot}`,
+      ];
+      if(notes) lines.push(`Notes: ${notes}`);
+      if(result.url) lines.push('', `Payment slip: ${result.url}`);
+      lines.push('', 'Once confirmed, please message the customer to confirm their visit.');
+
+      const message = encodeURIComponent(lines.join('\n'));
+      const waLink = `https://wa.me/919693396175?text=${message}`;
+      document.getElementById('waBtn').setAttribute('href', waLink);
+
+    } catch(err){
+      btn.textContent = originalLabel;
+      btn.disabled = false;
+      errSlip.textContent = 'Upload failed — please try again.';
+      errSlip.classList.add('show');
+    }
+  });
+</script>
+
+</body>
+</html>

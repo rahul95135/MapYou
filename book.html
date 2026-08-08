@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book an Appointment — MapYou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14213D; --ink-2:#1D2E52; --paper:#FAF6ED;
+    --marigold:#E8A33D; --route:#D64933; --verified:#2F7A5C;
+    --slate:#5B6B7A; --line:rgba(20,33,61,0.12); --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.55; }
+  h1,h2,h3{ font-family:'Roboto Slab', serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:640px; margin:0 auto; padding:0 24px; }
+
+  header{ background:var(--ink); color:#fff; padding:20px 0; }
+  header .wrap{ display:flex; align-items:center; justify-content:space-between; max-width:1040px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; }
+  .brand .pin{ width:18px; height:18px; }
+  .back{ font-size:0.85rem; color:#C9D2E3; display:flex; align-items:center; gap:6px; }
+  .back:hover{ color:#fff; }
+
+  .hero-strip{
+    background:var(--ink); color:#fff; padding:28px 0 44px; position:relative;
+  }
+  .hero-strip .wrap{ max-width:1040px; }
+  .hero-strip h1{ font-size:clamp(1.6rem,4vw,2.1rem); max-width:20ch; }
+  .hero-strip p{ color:#C9D2E3; margin-top:10px; max-width:50ch; }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px; margin:-30px auto 60px; box-shadow:0 20px 50px rgba(20,33,61,0.1);
+  }
+
+  .plan-select{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px; }
+  @media (max-width:560px){ .plan-select{ grid-template-columns:1fr; } }
+  .plan-opt{
+    border:1.5px solid var(--line); border-radius:10px; padding:14px 12px;
+    cursor:pointer; text-align:center; transition:all .15s ease; background:#fff;
+  }
+  .plan-opt input{ display:none; }
+  .plan-opt .name{ font-weight:700; font-size:0.95rem; }
+  .plan-opt .price{ font-family:'IBM Plex Mono',monospace; font-size:1.05rem; margin-top:4px; color:var(--slate); }
+  .plan-opt.active{ border-color:var(--route); background:#FDF1EE; }
+  .plan-opt.active .price{ color:var(--route); }
+
+  label{ display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; margin-top:20px; }
+  label .req{ color:var(--route); }
+  label:first-of-type{ margin-top:0; }
+  input[type=text], input[type=tel], input[type=date], select, textarea{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px;
+    font-family:'Inter',sans-serif; font-size:0.95rem; background:#FDFCF8;
+    transition:border-color .15s ease;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--ink); background:#fff; }
+  textarea{ resize:vertical; min-height:80px; }
+
+  .slot-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px; }
+  @media (max-width:480px){ .slot-row{ grid-template-columns:1fr; } }
+  .slot{
+    border:1.5px solid var(--line); border-radius:10px; padding:10px; text-align:center;
+    cursor:pointer; font-size:0.88rem; font-weight:500; transition:all .15s ease;
+  }
+  .slot input{ display:none; }
+  .slot.active{ border-color:var(--verified); background:#EEF6F1; color:var(--verified); font-weight:600; }
+
+  .booked-strip{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  .booked-day{
+    flex:1; min-width:88px; border:1.5px dashed var(--line); border-radius:10px;
+    padding:9px 8px; text-align:center; background:#F3F0E8; opacity:0.75;
+  }
+  .booked-day .d{ font-size:0.78rem; font-weight:600; color:var(--slate); }
+  .booked-day .s{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--route); text-transform:uppercase; letter-spacing:0.04em; margin-top:3px; }
+  .date-hint{ font-size:0.8rem; color:var(--verified); margin-top:8px; font-weight:500; }
+  .error{ color:var(--route); font-size:0.8rem; margin-top:6px; display:none; }
+  .error.show{ display:block; }
+  .field-invalid input, .field-invalid select{ border-color:var(--route); }
+
+  .submit-btn{
+    width:100%; margin-top:28px; background:var(--route); color:#fff; border:none;
+    padding:16px; border-radius:999px; font-weight:700; font-size:1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .submit-btn:hover{ transform:translateY(-1px); box-shadow:0 8px 20px rgba(214,73,51,0.32); }
+  .note{ font-size:0.78rem; color:var(--slate); text-align:center; margin-top:14px; }
+
+  .confirm{ display:none; text-align:center; padding:20px 0 6px; }
+  .confirm.show{ display:block; }
+  .confirm .pin{
+    width:52px; height:52px; border-radius:50% 50% 50% 0; background:var(--verified);
+    transform:rotate(-45deg); margin:0 auto 18px; display:flex; align-items:center; justify-content:center;
+  }
+  .confirm .pin span{ transform:rotate(45deg); color:#fff; font-size:1.3rem; }
+  .confirm h2{ font-size:1.3rem; }
+  .confirm p{ color:var(--slate); margin-top:8px; font-size:0.92rem; }
+  .confirm .btn{
+    display:inline-flex; margin-top:20px; background:var(--verified); color:#fff;
+    padding:12px 24px; border-radius:999px; font-weight:600; font-size:0.92rem;
+  }
+  .form-body{ display:block; }
+  .form-body.hide{ display:none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="pin" viewBox="0 0 24 24" fill="none"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8Z" fill="#E8A33D"/><circle cx="12" cy="10" r="3" fill="#14213D"/></svg>
+      MapYou
+    </div>
+    <a class="back" href="index.html">← Back to site</a>
+  </div>
+</header>
+
+<div class="hero-strip">
+  <div class="wrap">
+    <h1>Book your Google Business Profile visit</h1>
+    <p>Fill in your details below. I'll confirm your appointment on WhatsApp within the same day.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+
+    <div class="form-body" id="formBody">
+      <form id="bookingForm" novalidate>
+
+        <label>Choose your package</label>
+        <div class="plan-select" id="planSelect">
+          <label class="plan-opt" data-plan="Basic" data-price="₹499">
+            <input type="radio" name="plan" value="Basic">
+            <div class="name">Basic</div>
+            <div class="price">₹499</div>
+          </label>
+          <label class="plan-opt" data-plan="Standard" data-price="₹1,499">
+            <input type="radio" name="plan" value="Standard">
+            <div class="name">Standard</div>
+            <div class="price">₹1,499</div>
+          </label>
+          <label class="plan-opt" data-plan="Premium" data-price="₹2,999">
+            <input type="radio" name="plan" value="Premium">
+            <div class="name">Premium</div>
+            <div class="price">₹2,999</div>
+          </label>
+        </div>
+
+        <label for="name">Your name <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="e.g. Suresh Reddy">
+        <div class="error" id="err-name">Please enter your name.</div>
+
+        <label for="business">Business name <span class="req">*</span></label>
+        <input type="text" id="business" placeholder="e.g. Sri Balaji Restaurant">
+        <div class="error" id="err-business">Please enter your business name.</div>
+
+        <label for="btype">Business type <span class="req">*</span></label>
+        <select id="btype">
+          <option value="">Select one</option>
+          <option>Restaurant</option>
+          <option>Medical shop</option>
+          <option>Salon</option>
+          <option>Clothing store</option>
+          <option>Shoe shop</option>
+          <option>Hotel</option>
+          <option>Cafe</option>
+          <option>Mobile shop</option>
+          <option>Gym</option>
+          <option>Hospital</option>
+          <option>Other</option>
+        </select>
+        <div class="error" id="err-btype">Please select a business type.</div>
+
+        <label for="phone">Phone number <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10">
+        <div class="error" id="err-phone">Please enter a valid 10-digit number.</div>
+
+        <label for="address">Business address / area <span class="req">*</span></label>
+        <textarea id="address" placeholder="Shop no., street, city — wherever I should come for the visit"></textarea>
+        <div class="error" id="err-address">Please enter the address for the visit.</div>
+
+        <label for="date">Preferred date <span class="req">*</span></label>
+        <div class="booked-strip" id="bookedStrip"></div>
+        <input type="date" id="date">
+        <p class="date-hint" id="dateHint"></p>
+        <div class="error" id="err-date">Please choose a date from the available dates onward.</div>
+
+        <label>Preferred time</label>
+        <div class="slot-row" id="slotRow">
+          <label class="slot" data-slot="Morning"><input type="radio" name="slot" value="Morning">Morning</label>
+          <label class="slot" data-slot="Afternoon"><input type="radio" name="slot" value="Afternoon">Afternoon</label>
+          <label class="slot" data-slot="Evening"><input type="radio" name="slot" value="Evening">Evening</label>
+        </div>
+
+        <label for="notes">Anything else I should know?</label>
+        <textarea id="notes" placeholder="Optional — e.g. best time to call, landmark, special request"></textarea>
+
+        <button type="submit" class="submit-btn">Confirm booking → Pay now</button>
+        <p class="note">You'll be taken to a payment page to secure your slot.</p>
+      </form>
+    </div>
+
+    <div class="confirm" id="confirmBox">
+      <div class="pin"><span>✓</span></div>
+      <h2>Taking you to payment…</h2>
+      <p>Just a moment — redirecting you to complete your booking payment.</p>
+      <a class="btn" href="index.html">← Back to homepage</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const presetPlan = params.get('plan');
+
+  const planOpts = document.querySelectorAll('.plan-opt');
+  planOpts.forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      planOpts.forEach(o=>o.classList.remove('active'));
+      opt.classList.add('active');
+      opt.querySelector('input').checked = true;
+    });
+  });
+  if(presetPlan){
+    const match = [...planOpts].find(o=>o.dataset.plan.toLowerCase() === presetPlan.toLowerCase());
+    if(match){ match.classList.add('active'); match.querySelector('input').checked = true; }
+  }
+
+  const slots = document.querySelectorAll('.slot');
+  slots.forEach(s=>{
+    s.addEventListener('click', ()=>{
+      slots.forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+      s.querySelector('input').checked = true;
+    });
+  });
+
+  // We need 2 days' notice: today + the next 2 days show as booked/unavailable.
+  // Earliest selectable date is booking day + 2.
+  const dateInput = document.getElementById('date');
+  const bookedStrip = document.getElementById('bookedStrip');
+  const dateHint = document.getElementById('dateHint');
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function toISO(d){ return d.toISOString().split('T')[0]; }
+  function label(d){ return `${dayNames[d.getDay()]}, ${d.getDate()} ${monthNames[d.getMonth()]}`; }
+
+  const now = new Date();
+  now.setHours(0,0,0,0);
+
+  const blockedDates = [0,1,2].map(offset=>{
+    const d = new Date(now);
+    d.setDate(d.getDate() + offset);
+    return d;
+  });
+
+  bookedStrip.innerHTML = blockedDates.map(d=>`
+    <div class="booked-day">
+      <div class="d">${label(d)}</div>
+      <div class="s">Booked</div>
+    </div>
+  `).join('');
+
+  const earliest = new Date(now);
+  earliest.setDate(earliest.getDate() + 3); // first date after the 3 blocked days (today, +1, +2)
+  const earliestISO = toISO(earliest);
+  dateInput.setAttribute('min', earliestISO);
+  dateHint.textContent = `We need at least 2 days' notice — earliest available date is ${label(earliest)}.`;
+
+  const form = document.getElementById('bookingForm');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    let valid = true;
+
+    function check(id, condition){
+      const field = document.getElementById(id);
+      const err = document.getElementById('err-'+id);
+      const wrap = field.closest('label') ? field : field; 
+      if(!condition){
+        valid = false;
+        err.classList.add('show');
+        field.closest('div, label').classList.add('field-invalid');
+        field.parentElement && field.parentElement.classList.add('field-invalid');
+      } else {
+        err.classList.remove('show');
+      }
+    }
+
+    const name = document.getElementById('name').value.trim();
+    const business = document.getElementById('business').value.trim();
+    const btype = document.getElementById('btype').value;
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const date = document.getElementById('date').value;
+
+    check('name', name.length > 0);
+    check('business', business.length > 0);
+    check('btype', btype.length > 0);
+    check('phone', /^[6-9]\d{9}$/.test(phone));
+    check('address', address.length > 0);
+    check('date', date.length > 0 && date >= earliestISO);
+
+    if(!valid){
+      const firstError = document.querySelector('.error.show');
+      if(firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    const selectedPlan = document.querySelector('input[name=plan]:checked');
+    const plan = selectedPlan ? selectedPlan.value : 'Basic';
+    const selectedSlot = document.querySelector('input[name=slot]:checked');
+    const slot = selectedSlot ? selectedSlot.value : 'Any time';
+    const notes = document.getElementById('notes').value.trim();
+
+    document.getElementById('formBody').classList.add('hide');
+    document.getElementById('confirmBox').classList.add('show');
+
+    const bookingParams = new URLSearchParams({
+      plan, name, business, btype, phone, address, date, slot, notes
+    });
+
+    setTimeout(()=>{
+      window.location.href = `payment.html?${bookingParams.toString()}`;
+    }, 700);
+  });
+</script>
+
+</body>
+</html>
